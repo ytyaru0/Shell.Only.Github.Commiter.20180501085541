@@ -1,13 +1,25 @@
 #!/bin/bash
 IsSameRepoName () {
-    if [ -f "${repo_path}/.git/config" ]; then
-        local gitconfig_reponame=$(python3 GetRepoNameForGitConfig.py "${repo_path}")
-        local cd_name=$(basename "${repo_path}")
-        if [ "${cd_name}" != "${gitconfig_reponame}" ]; then
-            echo -e ".git/configのリポジトリ名とカレントディレクトリ名が一致しません。他所からコピペした.gitを間違って使い回していませんか？\n  .git/configリポジトリ名: ${gitconfig_reponame}\n  カレントディレクトリ名 : ${cd_name}"
-            exit 1
-        fi
-    fi
+    #if [ -f "${repo_path}/.git/config" ]; then
+    #    local gitconfig_reponame=$(python3 GetRepoNameForGitConfig.py "${repo_path}")
+    #    local cd_name=$(basename "${repo_path}")
+    #    if [ "${cd_name}" != "${gitconfig_reponame}" ]; then
+    #        echo -e ".git/configのリポジトリ名とカレントディレクトリ名が一致しません。他所からコピペした.gitを間違って使い回していませんか？\n  .git/configリポジトリ名: ${gitconfig_reponame}\n  カレントディレクトリ名 : ${cd_name}"
+    #        exit 1
+    #    fi
+    #fi
+    local f="${repo_path}/.git/config"
+    [ ! -f "$f" ] && continue
+    . $(cd $(dirname $0); pwd)/IniReader.sh
+    local url=`ReadIni "$f" 'remote "origin"' url`
+    . $(cd $(dirname $0); pwd)/GitConfigReader.sh
+    #local gitconfig_reponame=`GitConfigReader $url`
+    # 以下HTTPS形式を想定
+    # https://user:pass@github.com/user/repo.git
+    local gitconfig_reponame=`echo ${url} | awk -F "/" '{ print $NF }'`
+    local gitconfig_reponame=`echo ${gitconfig_reponame%.git}`
+    local cd_name=$(basename "${repo_path}")
+    [ "${cd_name}" != "${gitconfig_reponame}" ] && { echo -e ".git/configのリポジトリ名とカレントディレクトリ名が一致しません。他所からコピペした.gitを間違って使い回していませんか？\n  .git/configリポジトリ名: ${gitconfig_reponame}\n  カレントディレクトリ名 : ${cd_name}"; exit 1; }
 }
 ExistReadMe () {
     for name in README ReadMe readme Readme; do
