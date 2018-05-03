@@ -1,7 +1,7 @@
 #!/bin/bash
 IsSameRepoName () {
     local f="${repo_path}/.git/config"
-    [ ! -f "$f" ] && continue
+    [ ! -f "$f" ] && return
     . $(cd $(dirname $0); pwd)/IniReader.sh
     local url=`ReadIni "$f" 'remote "origin"' url`
     # 以下HTTPS形式を想定
